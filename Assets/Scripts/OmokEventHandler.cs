@@ -8,28 +8,29 @@ public class OmokEventHandler : MonoBehaviour
     public GameObject blackPiece;
     public GameObject whitePiece;
 
+    public GameObject transBlackPiece;
+    public GameObject transWhitePiece;
+
+    GameObject tempTransPiece;
+
     public float minX;
     public float maxX;
     public float minY;
     public float maxY;
 
-    int N = 15;
+    float xStep;
+    float yStep;
+    private readonly float eventArea = 0.2f;
+    private readonly int N = 15;
 
     private void Start()
     {
 
-        float xStep = (maxX - minX) / N;
-        float yStep = (maxY - minY) / N;
+        xStep = (maxX - minX) / (N - 1);
+        yStep = (maxY - minY) / (N - 1);
 
-        for (float x = minX; x <= maxX; x += xStep)
-        {
-            for (float y = minY; y <= maxY; y += yStep)
-            {     
-                Vector2 nowVector = new Vector2(x, y);
-
-                Instantiate(blackPiece, nowVector, Quaternion.identity);
-            }
-        }
+        tempTransPiece = Instantiate(transBlackPiece);
+        tempTransPiece.SetActive(false);
             
     }
 
@@ -41,7 +42,54 @@ public class OmokEventHandler : MonoBehaviour
         Vector2 screenPosition = Input.mousePosition;
         Vector2 worldPosition = Camera.main.ScreenToWorldPoint(screenPosition);
 
-        Debug.Log(worldPosition);
+        for (float x = minX; x <= maxX; x += xStep)
+        {
+            for (float y = minY; y <= maxY; y += yStep)
+            {
+                
+                if (worldPosition.x > x - eventArea && worldPosition.x < x + eventArea
+                    && worldPosition.y > y - eventArea && worldPosition.y < y + eventArea)
+                {
+                    tempTransPiece.transform.position = new Vector2(x, y);
+                    tempTransPiece.SetActive(true);
+                    return;
+                }
+
+            }
+        }
+
+        tempTransPiece.SetActive(false);
+
+    }
+
+    void OnMouseDown()
+    {
+        // 마우스의 현재 화면 위치를 가져옵니다.
+        Vector2 screenPosition = Input.mousePosition;
+        Vector2 worldPosition = Camera.main.ScreenToWorldPoint(screenPosition);
+
+        for (int i = 0; i < N; i++)
+        {
+            for (int j = 0; j < N; j++)
+            {
+
+                float x = minX + i * xStep;
+                float y = minY + j * yStep;
+
+                int row = N - j - 1;
+                int col = i;
+
+                if (worldPosition.x > x - eventArea && worldPosition.x < x + eventArea
+                    && worldPosition.y > y - eventArea && worldPosition.y < y + eventArea)
+                {
+
+                    Debug.Log("row => " + row + ", col => " + col);
+
+                    return;
+                }
+
+            }
+        }
 
     }
 
