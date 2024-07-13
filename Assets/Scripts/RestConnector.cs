@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -69,7 +70,7 @@ public class RestConnector : MonoBehaviour
             // JSON 응답을 지정된 클래스 형태로 변환
             string json = webRequest.downloadHandler.text;
             Debug.Log(json);
-            return JsonUtility.FromJson<T>(json);
+            return JsonConvert.DeserializeObject<T>(json);
         }
     }
 

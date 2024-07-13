@@ -75,8 +75,9 @@ public class GameManager : MonoBehaviour
 
         // 서버에 대기방 목록 조회하기.
         RestConnector.Instance.GetRequest<RoomSimpleData[]>("/room/public", (response) =>
-        {         
-            Debug.Log(response);
+        {
+            Debug.Log(response[0].roomId);
+            Debug.Log(response[0].roomTitle);
         });
 
         // for문으로 돌면서 새롭게 UI 만들어서 추가하기.
