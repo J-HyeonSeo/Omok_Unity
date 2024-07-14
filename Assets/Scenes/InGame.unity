@@ -2589,6 +2589,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1345149925}
   m_CullTransparentMesh: 1
+--- !u!1 &1464462003
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1464462005}
+  - component: {fileID: 1464462004}
+  m_Layer: 0
+  m_Name: RestConnector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1464462004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464462003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff604b0542eb86749b7e555648657aad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1464462005
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464462003}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.1775513, y: 0.86310506, z: -2.2590263}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1507763525
 GameObject:
   m_ObjectHideFlags: 0
@@ -2970,6 +3014,10 @@ MonoBehaviour:
   whitePiece: {fileID: 0}
   transBlackPiece: {fileID: 113361281144212742, guid: ca6e31a102dedd64ab51d41ccab7c043, type: 3}
   transWhitePiece: {fileID: 7846447272321751991, guid: 63f7db19f17cd614081b2266326542af, type: 3}
+  blackPlayerNameText: {fileID: 331824955}
+  whitePlayerNameText: {fileID: 858009435}
+  blackPlayerTimeText: {fileID: 17536680}
+  whitePlayerTimeText: {fileID: 580149613}
   minX: -3.5
   maxX: 3.5
   minY: -3.5
@@ -3674,3 +3722,4 @@ SceneRoots:
   - {fileID: 2048464452}
   - {fileID: 1966079371}
   - {fileID: 1608018016}
+  - {fileID: 1464462005}

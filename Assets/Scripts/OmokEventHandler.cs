@@ -1,6 +1,8 @@
+using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class OmokEventHandler : MonoBehaviour
 {
@@ -10,6 +12,10 @@ public class OmokEventHandler : MonoBehaviour
 
     public GameObject transBlackPiece;
     public GameObject transWhitePiece;
+    public Text blackPlayerNameText;
+    public Text whitePlayerNameText;
+    public Text blackPlayerTimeText;
+    public Text whitePlayerTimeText;
 
     GameObject tempTransPiece;
 
@@ -29,9 +35,20 @@ public class OmokEventHandler : MonoBehaviour
         xStep = (maxX - minX) / (N - 1);
         yStep = (maxY - minY) / (N - 1);
 
-        tempTransPiece = Instantiate(transBlackPiece);
+        // 본인 이름 변경
+        if (GameManager.Instance.piece == Piece.BLACK)
+        {
+            blackPlayerNameText.text = GameManager.Instance.playerName;
+        } else
+        {
+            whitePlayerNameText.text = GameManager.Instance.playerName;
+        }
+
+        // PIECE 할당
+        tempTransPiece = Instantiate(GameManager.Instance.piece == Piece.BLACK ? transBlackPiece : transWhitePiece);
         tempTransPiece.SetActive(false);
-            
+
+        StartCoroutine(PollingGameData());
     }
 
     // Update is called once per frame
@@ -91,6 +108,44 @@ public class OmokEventHandler : MonoBehaviour
             }
         }
 
+    }
+
+    // 1초마다 게임 데이터를 폴링함.
+    IEnumerator PollingGameData()
+    {
+        RestConnector.Instance.GetRequest("/game/" + GameManager.Instance.roomId, (webRequest) =>
+        {
+
+            if (webRequest.responseCode == 200)
+            {
+
+                JsonSerializerSettings settings = new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore
+                };
+
+                Debug.Log(webRequest.downloadHandler.text);
+
+                GameData gameData = JsonConvert.DeserializeObject<GameData>(webRequest.downloadHandler.text, settings);
+
+                Debug.Log(gameData.roomId);
+                Debug.Log(gameData.roomTitle);
+                Debug.Log(gameData.nowState);
+                Debug.Log(gameData.otherPlayerName);
+                Debug.Log(gameData.turnedAt);
+                Debug.Log(gameData.winnerPlayerId);
+                Debug.Log(gameData.board);
+
+            } else
+            {
+
+                ErrorResponse response = JsonConvert.DeserializeObject<ErrorResponse>(webRequest.downloadHandler.text);
+                Debug.Log(response.message);
+            }
+
+        }, GameManager.Instance.accessToken);
+
+        yield return new WaitForSeconds(1f);
     }
 
 }

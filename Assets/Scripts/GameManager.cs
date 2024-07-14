@@ -30,6 +30,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         GetRoomWaitRoomList();
+        InitializeBoard();
     }
 
     // 외부에서 게임매니저에 접근할 수 있도록 함. set를 사용하지 않아 새로운 GameManager를 할당 할 수 없게 함.
@@ -60,6 +61,8 @@ public class GameManager : MonoBehaviour
     public Piece[] board = new Piece[15 * 15];
     [HideInInspector]
     public string roomId;
+    [HideInInspector]
+    public float remainTime;
 
     // 외부에서 끌어올 실제 인스턴스 주입
     public Transform RoomContentArea; // 방 목록 Content 부모 UI
@@ -120,8 +123,13 @@ public class GameManager : MonoBehaviour
                 roomId = response.roomId;
                 accessToken = response.accessToken;
 
+                // 블랙 플레이어로 셋팅
+                piece = Piece.BLACK;
+                InitializeBoard();
+
                 // 인 게임 씬으로 넘어가기.
                 SceneManager.LoadScene("InGame");
+
 
             } else
             {
@@ -149,6 +157,10 @@ public class GameManager : MonoBehaviour
                 RoomCreateAndEnterResponse response = JsonConvert.DeserializeObject<RoomCreateAndEnterResponse>(webRequest.downloadHandler.text);
                 roomId = response.roomId;
                 accessToken = response.accessToken;
+
+                // 화이트 플레이어로 셋팅
+                piece = Piece.WHITE;
+                InitializeBoard();
 
                 // 인 게임 씬으로 넘어가기.
                 SceneManager.LoadScene("InGame");
@@ -220,6 +232,23 @@ public class GameManager : MonoBehaviour
     public void PutPiece()
     {
 
+    }
+
+    // 보드 초기화
+    private void InitializeBoard()
+    {
+        for (int x = 0; x < 15; x++)
+        {
+            for (int y = 0; y < 15; y++)
+            {
+                board[IX(x, y)] = Piece.NONE;
+            }
+        }
+    }
+
+    private int IX(int x, int y)
+    {
+        return x * 15 + y;
     }
 
 }

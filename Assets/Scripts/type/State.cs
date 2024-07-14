@@ -4,5 +4,5 @@ using UnityEngine;
 
 public enum State
 {
-    WAIT, BLACK, WHITE
+    WAIT, BLACK, WHITE, DISCONNECTED
 }
