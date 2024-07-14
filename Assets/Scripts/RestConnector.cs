@@ -32,46 +32,29 @@ public class RestConnector : MonoBehaviour
     private static string host = "http://localhost:8080";
 
     // Get 요청 외부 호출
-    public void GetRequest<T>(string path, Action<T> callback, string accessToken = "")
+    public void GetRequest(string path, Action<UnityWebRequest> callback, string accessToken = "")
     {
         UnityWebRequest webRequest = UnityWebRequest.Get(host + path);
         webRequest.SetRequestHeader("Authorization", "Bearer " + accessToken);
-        StartCoroutine(SendRequest<T>(webRequest, callback));
+        StartCoroutine(SendRequest(webRequest, callback));
     }
 
     // Post 요청 외부 호출
-    public void Request<T>(string path, string requestBody, string method, Action<T> callback, string accessToken = "")
+    public void Request(string path, string requestBody, string method, Action<UnityWebRequest> callback, string accessToken = "")
     {
-        UnityWebRequest webRequest = new UnityWebRequest(host, method);
+        UnityWebRequest webRequest = new UnityWebRequest(host + path, method);
 
         webRequest.SetRequestHeader("Content-Type", "application/json");
         webRequest.SetRequestHeader("Authorization", "Bearer " + accessToken);
         webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(requestBody));
         webRequest.downloadHandler = new DownloadHandlerBuffer();
-        StartCoroutine(SendRequest<T>(webRequest, callback));
+        StartCoroutine(SendRequest(webRequest, callback));
     }
 
-    private IEnumerator SendRequest<T>(UnityWebRequest webRequest, Action<T> callback)
+    private IEnumerator SendRequest(UnityWebRequest webRequest, Action<UnityWebRequest> callback)
     {
         yield return webRequest.SendWebRequest();
-        T converted = ProcessResponse<T>(webRequest);
-        callback(converted);
-    }
-
-    private T ProcessResponse<T>(UnityWebRequest webRequest)
-    {
-        if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError)
-        {
-            Debug.LogError("Error: " + webRequest.error);
-            return default;
-        }
-        else
-        {
-            // JSON 응답을 지정된 클래스 형태로 변환
-            string json = webRequest.downloadHandler.text;
-            Debug.Log(json);
-            return JsonConvert.DeserializeObject<T>(json);
-        }
+        callback(webRequest);
     }
 
 }
