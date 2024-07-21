@@ -194,7 +194,10 @@ public class OmokEventHandler : MonoBehaviour
             {
                 Piece piece = GameManager.Instance.board[GameManager.Instance.IX(x, y)];
 
-                Vector2 vector = new Vector2(minX + x * xStep, minY + y * yStep);
+                /*int row = N - j - 1;
+                int col = i;*/
+
+                Vector2 vector = new Vector2(minX + y * xStep, minY + (N - x - 1) * yStep);
 
                 GameObject putPiece = piece == Piece.BLACK ? blackPiece : piece == Piece.WHITE ? whitePiece : null;
 
