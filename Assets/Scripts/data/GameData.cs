@@ -12,7 +12,7 @@ public class GameData
     /*
      * "turnedAt":[2024,7,14,18,45,7,868696000]
      */
-    public long[] turnedAt;
+    public int[] turnedAt;
     public string winnerPlayerId;
     public Piece[] board;
 }

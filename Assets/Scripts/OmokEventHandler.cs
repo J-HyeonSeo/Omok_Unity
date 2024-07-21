@@ -1,4 +1,6 @@
+using JetBrains.Annotations;
 using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -29,7 +31,7 @@ public class OmokEventHandler : MonoBehaviour
     private readonly float eventArea = 0.2f;
     private readonly int N = 15;
 
-    private void Start()
+    private void Awake()
     {
 
         xStep = (maxX - minX) / (N - 1);
@@ -48,10 +50,10 @@ public class OmokEventHandler : MonoBehaviour
         tempTransPiece = Instantiate(GameManager.Instance.piece == Piece.BLACK ? transBlackPiece : transWhitePiece);
         tempTransPiece.SetActive(false);
 
-        StartCoroutine(PollingGameData());
+        StartCoroutine(PollingGameDataAndProcess());
     }
 
-    // Update is called once per frame
+    // 현재 둘 오목돌을 강조하는 이벤트를 구현
     void Update()
     {
 
@@ -59,24 +61,28 @@ public class OmokEventHandler : MonoBehaviour
         Vector2 screenPosition = Input.mousePosition;
         Vector2 worldPosition = Camera.main.ScreenToWorldPoint(screenPosition);
 
-        for (float x = minX; x <= maxX; x += xStep)
+        if ((GameManager.Instance.state == State.BLACK && GameManager.Instance.piece == Piece.BLACK) ||
+            (GameManager.Instance.state == State.WHITE && GameManager.Instance.piece == Piece.WHITE))
         {
-            for (float y = minY; y <= maxY; y += yStep)
+
+            for (float x = minX; x <= maxX; x += xStep)
             {
-                
-                if (worldPosition.x > x - eventArea && worldPosition.x < x + eventArea
-                    && worldPosition.y > y - eventArea && worldPosition.y < y + eventArea)
+                for (float y = minY; y <= maxY; y += yStep)
                 {
-                    tempTransPiece.transform.position = new Vector2(x, y);
-                    tempTransPiece.SetActive(true);
-                    return;
+
+                    if (worldPosition.x > x - eventArea && worldPosition.x < x + eventArea
+                        && worldPosition.y > y - eventArea && worldPosition.y < y + eventArea)
+                    {
+                        tempTransPiece.transform.position = new Vector2(x, y);
+                        tempTransPiece.SetActive(true);
+                        return;
+                    }
+
                 }
-
             }
+
+            tempTransPiece.SetActive(false);
         }
-
-        tempTransPiece.SetActive(false);
-
     }
 
     void OnMouseDown()
@@ -100,7 +106,7 @@ public class OmokEventHandler : MonoBehaviour
                     && worldPosition.y > y - eventArea && worldPosition.y < y + eventArea)
                 {
 
-                    Debug.Log("row => " + row + ", col => " + col);
+                    GameManager.Instance.PutPiece(row, col);
 
                     return;
                 }
@@ -110,42 +116,110 @@ public class OmokEventHandler : MonoBehaviour
 
     }
 
-    // 1초마다 게임 데이터를 폴링함.
-    IEnumerator PollingGameData()
+    // 1초마다 게임 데이터를 폴링하고, 결과에 대한 처리를 수행함.
+    IEnumerator PollingGameDataAndProcess()
     {
-        RestConnector.Instance.GetRequest("/game/" + GameManager.Instance.roomId, (webRequest) =>
+        while (true)
         {
-
-            if (webRequest.responseCode == 200)
+            RestConnector.Instance.GetRequest("/game/" + GameManager.Instance.roomId, (webRequest) =>
             {
 
-                JsonSerializerSettings settings = new JsonSerializerSettings
+                if (webRequest.responseCode == 200)
                 {
-                    NullValueHandling = NullValueHandling.Ignore
-                };
 
-                Debug.Log(webRequest.downloadHandler.text);
+                    JsonSerializerSettings settings = new JsonSerializerSettings
+                    {
+                        NullValueHandling = NullValueHandling.Ignore
+                    };
 
-                GameData gameData = JsonConvert.DeserializeObject<GameData>(webRequest.downloadHandler.text, settings);
+                    Debug.Log(webRequest.downloadHandler.text);
 
-                Debug.Log(gameData.roomId);
-                Debug.Log(gameData.roomTitle);
-                Debug.Log(gameData.nowState);
-                Debug.Log(gameData.otherPlayerName);
-                Debug.Log(gameData.turnedAt);
-                Debug.Log(gameData.winnerPlayerId);
-                Debug.Log(gameData.board);
+                    GameData gameData = JsonConvert.DeserializeObject<GameData>(webRequest.downloadHandler.text, settings);
 
-            } else
+                    if (gameData.winnerPlayerId != null && gameData.winnerPlayerId.Equals(GameManager.Instance.playerId))
+                    {
+                        // 승리 모달 띄우기
+
+                        return;
+                    }
+
+                    if (gameData.winnerPlayerId != null && !gameData.winnerPlayerId.Equals(GameManager.Instance.playerId))
+                    {
+                        // 패배 모달 띄우기
+
+                        return;
+                    }
+
+                    // GameManager에 게임 정보 할당.
+                    GameManager.Instance.state = gameData.nowState;
+                    GameManager.Instance.otherPlayerName = gameData.otherPlayerName;
+                    GameManager.Instance.board = gameData.board;
+
+                    // 게임 보드 렌더링
+                    RenderBoard();
+
+                    //turnedAt을 가지고 remainTime수정.
+                    DateTime turnedAt = GetDateTime(gameData.turnedAt);
+                    GameManager.Instance.remainTime = 20 - (float)(DateTime.Now - turnedAt).TotalSeconds;
+
+                }
+                else
+                {
+
+                    ErrorResponse response = JsonConvert.DeserializeObject<ErrorResponse>(webRequest.downloadHandler.text);
+                    Debug.Log(response.message);
+                }
+
+            }, GameManager.Instance.accessToken);
+
+            yield return new WaitForSeconds(1f);
+        }
+    }
+
+    // 현재 Board 상태를 참고하여 보드 렌더링 수행
+    private void RenderBoard()
+    {
+        // Board상태 Clear수행
+        Transform transform = gameObject.transform;
+
+        for (int i = transform.childCount - 1; i >= 0; i--)
+        {
+            Destroy(transform.GetChild(i).gameObject);
+        }
+
+        // GameManager의 Board 배열을 통한, 렌더링 수행
+        for (int x = 0; x < 15; x++)
+        {
+            for (int y = 0; y < 15; y++)
             {
+                Piece piece = GameManager.Instance.board[GameManager.Instance.IX(x, y)];
 
-                ErrorResponse response = JsonConvert.DeserializeObject<ErrorResponse>(webRequest.downloadHandler.text);
-                Debug.Log(response.message);
+                Vector2 vector = new Vector2(minX + x * xStep, minY + y * yStep);
+
+                GameObject putPiece = piece == Piece.BLACK ? blackPiece : piece == Piece.WHITE ? whitePiece : null;
+
+                if (putPiece == null) { continue; }
+
+                GameObject obj = Instantiate(putPiece, gameObject.transform);
+                obj.transform.position = vector;
             }
+        }
+    }
 
-        }, GameManager.Instance.accessToken);
+    private DateTime GetDateTime(int[] turnedAt)
+    {
+        int year = turnedAt[0];
+        int month = turnedAt[1];
+        int day = turnedAt[2];
+        int hour = turnedAt[3];
+        int minute = turnedAt[4];
+        int second = turnedAt[5];
+        int nanoOfSecond = turnedAt[6];
 
-        yield return new WaitForSeconds(1f);
+        DateTime dateTime = new DateTime(year, month, day, hour, minute, second);
+        dateTime.AddTicks(nanoOfSecond / 100);
+
+        return dateTime;
     }
 
 }

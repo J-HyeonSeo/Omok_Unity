@@ -29,7 +29,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        GetRoomWaitRoomList();
+        StartCoroutine(GetRoomWaitRoomList());
         InitializeBoard();
     }
 
@@ -57,6 +57,8 @@ public class GameManager : MonoBehaviour
     public string otherPlayerName;
     [HideInInspector]
     public Piece piece;
+    [HideInInspector]
+    public State state;
     [HideInInspector]
     public Piece[] board = new Piece[15 * 15];
     [HideInInspector]
@@ -181,57 +183,71 @@ public class GameManager : MonoBehaviour
     }
 
     // 방목록 불러오기 ( 10초에 한 번씩 refresh )
-    public void GetRoomWaitRoomList()
+    IEnumerator GetRoomWaitRoomList()
     {
-        // 방 목록이 될 메인 UI 가져오기
-        // 메인 UI의 자식 인스턴스 제거 하기.
-        for (int i = RoomContentArea.childCount - 1; i >= 0; i--)
+        while (true)
         {
-            Destroy(RoomContentArea.GetChild(i).gameObject);
-        }
-
-        // 서버에 대기방 목록 조회하기.
-        RestConnector.Instance.GetRequest("/room/public", (webRequest) =>
-        {
-
-            if (webRequest.responseCode == 200)
+            // 방 목록이 될 메인 UI 가져오기
+            // 메인 UI의 자식 인스턴스 제거 하기.
+            for (int i = RoomContentArea.childCount - 1; i >= 0; i--)
             {
-                RoomSimpleData[] response = JsonConvert.DeserializeObject<RoomSimpleData[]>(webRequest.downloadHandler.text);
-
-                // for문으로 돌면서 새롭게 UI 만들어서 추가하기.
-                foreach (RoomSimpleData data in response)
-                {
-                    GameObject instanceContent = Instantiate(RoomContent, RoomContentArea);
-                    GameObject titleObject = instanceContent.transform.GetChild(0).gameObject;
-
-                    // 제목 할당.
-                    Text roomTitleText = titleObject.GetComponent<Text>();
-                    roomTitleText.text = data.roomTitle;
-
-                    // 버튼 이벤트 할당.
-                    Button button = instanceContent.GetComponent<Button>();
-                    button.onClick.AddListener(() =>
-                    {
-                        roomId = data.roomId;
-                        OpenModal(1);
-                    });
-
-                }
+                Destroy(RoomContentArea.GetChild(i).gameObject);
             }
-        });
 
-    }
+            // 서버에 대기방 목록 조회하기.
+            RestConnector.Instance.GetRequest("/room/public", (webRequest) =>
+            {
 
-    // 게임 데이터 가져오기
-    public void GetGameData()
-    {
+                if (webRequest.responseCode == 200)
+                {
+                    RoomSimpleData[] response = JsonConvert.DeserializeObject<RoomSimpleData[]>(webRequest.downloadHandler.text);
+
+                    // for문으로 돌면서 새롭게 UI 만들어서 추가하기.
+                    foreach (RoomSimpleData data in response)
+                    {
+                        GameObject instanceContent = Instantiate(RoomContent, RoomContentArea);
+                        GameObject titleObject = instanceContent.transform.GetChild(0).gameObject;
+
+                        // 제목 할당.
+                        Text roomTitleText = titleObject.GetComponent<Text>();
+                        roomTitleText.text = data.roomTitle;
+
+                        // 버튼 이벤트 할당.
+                        Button button = instanceContent.GetComponent<Button>();
+                        button.onClick.AddListener(() =>
+                        {
+                            roomId = data.roomId;
+                            OpenModal(1);
+                        });
+
+                    }
+                }
+            });
+
+            yield return new WaitForSeconds(5f);
+        }
 
     }
 
     // 오목 돌 두기
-    public void PutPiece()
+    public void PutPiece(int x, int y)
     {
+        string requestBody = JsonConvert.SerializeObject(new PutPieceRequest(roomId, x, y));
 
+        RestConnector.Instance.Request("/game", requestBody, "PATCH", (webRequest) =>
+        {
+            if (webRequest.responseCode == 200)
+            {
+
+                Debug.Log("성공!");
+
+            }
+            else
+            {
+                ErrorResponse response = JsonConvert.DeserializeObject<ErrorResponse>(webRequest.downloadHandler.text);
+                Debug.Log(response.message);
+            }
+        }, accessToken);
     }
 
     // 보드 초기화
@@ -246,7 +262,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private int IX(int x, int y)
+    public int IX(int x, int y)
     {
         return x * 15 + y;
     }
