@@ -14,15 +14,21 @@ public class GameManager : MonoBehaviour
     // 항상 MainScene의 객체가 메인이 되도록 셋팅.
     void Awake()
     {
+        // 현재 인스턴스가 비어있다면..
         if (instance == null)
         {
             instance = this;
             DontDestroyOnLoad(this.gameObject);
         }
-        else
+        else // 현재 인스턴스가 비어있지 않다면, (게임씬에서 메인씬으로 넘어온 경우)
         {
-            Destroy(instance.gameObject);
+            // 기존 자기자신 인스턴스를 삭제함.
+            Destroy(instance.gameObject); 
+
+            // 새로 넘어온 메인씬의 게임오브젝트를 현재 인스턴스로 지정함.
             instance = this;
+
+            // 새로 넘어온 메인씬의 게임매니저 인스턴스를 씬 전환에도 삭제되지 않도록 함.
             DontDestroyOnLoad(this.gameObject);
         }
     }
@@ -65,25 +71,27 @@ public class GameManager : MonoBehaviour
     public string roomId;
     [HideInInspector]
     public float remainTime;
+    [HideInInspector]
+    public bool isGameDone = false;
 
     // 외부에서 끌어올 실제 인스턴스 주입
-    public Transform RoomContentArea; // 방 목록 Content 부모 UI
-    public GameObject BackDrop; // 모달 BackDrop
-    public InputField RoomTitleForCreateRoomField; // 방 이름 인풋필드(방생성)
-    public InputField PlayerNameForCreateRoomField; // 플레이어명 인풋필드(방생성)
-    public InputField PlayerNameForEnterRoomField; // 플레이어명 인풋필드(방입장)
+    public Transform roomContentArea; // 방 목록 Content 부모 UI
+    public GameObject backDrop; // 모달 BackDrop
+    public InputField roomTitleForCreateRoomField; // 방 이름 인풋필드(방생성)
+    public InputField playerNameForCreateRoomField; // 플레이어명 인풋필드(방생성)
+    public InputField playerNameForEnterRoomField; // 플레이어명 인풋필드(방입장)
 
     // 새롭게 만들려고 하는 프리팹 객체 주입
-    public GameObject RoomContent; // 방 목록 중 하나의 객체가 될 프리팹
+    public GameObject roomContent; // 방 목록 중 하나의 객체가 될 프리팹
 
     // 모달창을 Open 모달의 자식인덱스를 입력받아 해당 하는 것을 Open시킴.
     public void OpenModal(int siblingIndex)
     {
         //BackDrop 활성화
-        BackDrop.SetActive(true);
+        backDrop.SetActive(true);
 
         //Modal 부모 객체 가져오기
-        Transform mainModal = BackDrop.transform.GetChild(0);
+        Transform mainModal = backDrop.transform.GetChild(0);
 
         //현재 siblingIndex에 해당하는 모달만 켜고 나머지는 비활성화 처리.
         for (int i = 0; i < mainModal.childCount; i++)
@@ -103,15 +111,15 @@ public class GameManager : MonoBehaviour
     // 모달창을 닫음.
     public void CloseModal()
     {
-        BackDrop.SetActive(false);
+        backDrop.SetActive(false);
     }
 
     // 방만들기
     public void CreateRoom()
     {
         // 방 제목, 플레이어명을 가져와야 함.
-        string roomTitle = RoomTitleForCreateRoomField.text;
-        playerName = PlayerNameForCreateRoomField.text;
+        string roomTitle = roomTitleForCreateRoomField.text;
+        playerName = playerNameForCreateRoomField.text;
 
         // Post 요청을 통해 roomId와 accessToken을 획득해야 함.
         string requestBody = JsonConvert.SerializeObject(new CreateRoomRequest(roomTitle, playerName));
@@ -124,6 +132,7 @@ public class GameManager : MonoBehaviour
                 RoomCreateAndEnterResponse response = JsonConvert.DeserializeObject<RoomCreateAndEnterResponse>(webRequest.downloadHandler.text);
                 roomId = response.roomId;
                 accessToken = response.accessToken;
+                playerId = response.playerId;
 
                 // 블랙 플레이어로 셋팅
                 piece = Piece.BLACK;
@@ -146,7 +155,7 @@ public class GameManager : MonoBehaviour
     public void EnterRoom()
     {
         // roomId하고, 플레이어명을 가져와야 함.
-        playerName = PlayerNameForEnterRoomField.text;
+        playerName = playerNameForEnterRoomField.text;
 
         // Patch 요청을 통해 accessToken을 획득해야 함.
         string requestBody = JsonConvert.SerializeObject(new EnterRoomRequest(roomId, playerName));
@@ -159,6 +168,7 @@ public class GameManager : MonoBehaviour
                 RoomCreateAndEnterResponse response = JsonConvert.DeserializeObject<RoomCreateAndEnterResponse>(webRequest.downloadHandler.text);
                 roomId = response.roomId;
                 accessToken = response.accessToken;
+                playerId = response.playerId;
 
                 // 화이트 플레이어로 셋팅
                 piece = Piece.WHITE;
@@ -176,10 +186,10 @@ public class GameManager : MonoBehaviour
         });
     }
 
-    // 방 나가기
-    public void ExitRoom()
+    // 메인 화면으로 돌아가기.
+    public void GoToMain()
     {
-
+        SceneManager.LoadScene("Main");
     }
 
     // 방목록 불러오기 ( 10초에 한 번씩 refresh )
@@ -189,9 +199,9 @@ public class GameManager : MonoBehaviour
         {
             // 방 목록이 될 메인 UI 가져오기
             // 메인 UI의 자식 인스턴스 제거 하기.
-            for (int i = RoomContentArea.childCount - 1; i >= 0; i--)
+            for (int i = roomContentArea.childCount - 1; i >= 0; i--)
             {
-                Destroy(RoomContentArea.GetChild(i).gameObject);
+                Destroy(roomContentArea.GetChild(i).gameObject);
             }
 
             // 서버에 대기방 목록 조회하기.
@@ -205,7 +215,7 @@ public class GameManager : MonoBehaviour
                     // for문으로 돌면서 새롭게 UI 만들어서 추가하기.
                     foreach (RoomSimpleData data in response)
                     {
-                        GameObject instanceContent = Instantiate(RoomContent, RoomContentArea);
+                        GameObject instanceContent = Instantiate(roomContent, roomContentArea);
                         GameObject titleObject = instanceContent.transform.GetChild(0).gameObject;
 
                         // 제목 할당.

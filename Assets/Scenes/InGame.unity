@@ -364,7 +364,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\uC624\uBAA9\uB0E5"
+  m_Text: '-'
 --- !u!222 &331824956
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -785,7 +785,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\uAC1C\uBC1C\uC790 J\uAD70"
+  m_Text: '-'
 --- !u!222 &858009436
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -953,7 +953,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1132815909}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1608018017}
+        m_TargetAssemblyTypeName: OmokEventHandler, Assembly-CSharp
+        m_MethodName: GoToMain
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1132815909
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1193,7 +1205,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1507763528}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1608018017}
+        m_TargetAssemblyTypeName: OmokEventHandler, Assembly-CSharp
+        m_MethodName: GoToMain
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 1
 --- !u!114 &1507763528
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1417,6 +1441,9 @@ MonoBehaviour:
   whitePlayerNameText: {fileID: 858009435}
   blackPlayerTimeText: {fileID: 17536680}
   whitePlayerTimeText: {fileID: 580149613}
+  backDrop: {fileID: 442056066}
+  winModal: {fileID: 1062861607}
+  loseModal: {fileID: 1958478703}
   minX: -3.5
   maxX: 3.5
   minY: -3.5
@@ -2002,7 +2029,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 3
   m_TargetDisplay: 0
 --- !u!224 &2048464452
 RectTransform:

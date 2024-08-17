@@ -19,6 +19,10 @@ public class OmokEventHandler : MonoBehaviour
     public Text blackPlayerTimeText;
     public Text whitePlayerTimeText;
 
+    public GameObject backDrop;
+    public GameObject winModal;
+    public GameObject loseModal;
+
     GameObject tempTransPiece;
 
     public float minX;
@@ -57,6 +61,11 @@ public class OmokEventHandler : MonoBehaviour
     void Update()
     {
 
+        if (GameManager.Instance.isGameDone)
+        {
+            return;
+        }
+
         // 마우스의 현재 화면 위치를 가져옵니다.
         Vector2 screenPosition = Input.mousePosition;
         Vector2 worldPosition = Camera.main.ScreenToWorldPoint(screenPosition);
@@ -87,6 +96,12 @@ public class OmokEventHandler : MonoBehaviour
 
     void OnMouseDown()
     {
+
+        if (GameManager.Instance.isGameDone)
+        {
+            return;
+        }
+
         // 마우스의 현재 화면 위치를 가져옵니다.
         Vector2 screenPosition = Input.mousePosition;
         Vector2 worldPosition = Camera.main.ScreenToWorldPoint(screenPosition);
@@ -139,15 +154,17 @@ public class OmokEventHandler : MonoBehaviour
                     if (gameData.winnerPlayerId != null && gameData.winnerPlayerId.Equals(GameManager.Instance.playerId))
                     {
                         // 승리 모달 띄우기
-
-                        return;
+                        backDrop.SetActive(true);
+                        winModal.SetActive(true);
+                        GameManager.Instance.isGameDone = true;
                     }
 
                     if (gameData.winnerPlayerId != null && !gameData.winnerPlayerId.Equals(GameManager.Instance.playerId))
                     {
                         // 패배 모달 띄우기
-
-                        return;
+                        backDrop.SetActive(true);
+                        loseModal.SetActive(true);
+                        GameManager.Instance.isGameDone = true;
                     }
 
                     // GameManager에 게임 정보 할당.
@@ -174,6 +191,11 @@ public class OmokEventHandler : MonoBehaviour
 
             yield return new WaitForSeconds(1f);
         }
+    }
+
+    public void GoToMain()
+    {
+        GameManager.Instance.GoToMain();
     }
 
     // 현재 Board 상태를 참고하여 보드 렌더링 수행

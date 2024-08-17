@@ -18,6 +18,11 @@ public class TimeDisplayer : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.Instance.isGameDone)
+        {
+            return;
+        }
+
         GameManager.Instance.remainTime -= Time.deltaTime;
         float remainTime = GameManager.Instance.remainTime;
 
