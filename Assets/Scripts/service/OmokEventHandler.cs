@@ -189,7 +189,7 @@ public class OmokEventHandler : MonoBehaviour
 
             }, GameManager.Instance.accessToken);
 
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.2f);
         }
     }
 

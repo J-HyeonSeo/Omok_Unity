@@ -24,7 +24,7 @@ public class TimeDisplayer : MonoBehaviour
         }
 
         GameManager.Instance.remainTime -= Time.deltaTime;
-        float remainTime = GameManager.Instance.remainTime;
+        float remainTime = Mathf.Max(GameManager.Instance.remainTime, 0f);
 
         if (GameManager.Instance.state == State.BLACK && piece == Piece.BLACK)
         {
