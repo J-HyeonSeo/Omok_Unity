@@ -172,6 +172,15 @@ public class OmokEventHandler : MonoBehaviour
                     GameManager.Instance.otherPlayerName = gameData.otherPlayerName;
                     GameManager.Instance.board = gameData.board;
 
+                    // 상대방 플레이어 텍스트 할당 작업.
+                    if (GameManager.Instance.piece == Piece.BLACK)
+                    {
+                        whitePlayerNameText.text = gameData.otherPlayerName;
+                    } else
+                    {
+                        blackPlayerNameText.text = gameData.otherPlayerName;
+                    }
+
                     // 게임 보드 렌더링
                     RenderBoard();
 
