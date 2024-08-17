@@ -1,5 +1,3 @@
-using System;
-
 public class GameData
 {
     public string roomId;
